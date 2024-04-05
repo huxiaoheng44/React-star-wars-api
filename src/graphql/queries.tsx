@@ -1,20 +1,46 @@
 import { gql } from "@apollo/client";
 
 export const GET_ALL_PEOPLE = gql`
-  query GetAllPeople {
+  query GetAllPeople($first: Int, $after: String) {
+    allPeople(first: $first, after: $after) {
+      edges {
+        node {
+          height
+          eyeColor
+          gender
+          species {
+            name
+          }
+          name
+          homeworld {
+            name
+          }
+          mass
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`;
+
+export const GET_FILTER_DATA = gql`
+  query Query {
     allPeople {
       people {
-        height
         eyeColor
         gender
         species {
           name
         }
-        name
-        homeworld {
-          name
+        filmConnection {
+          films {
+            title
+          }
         }
-        mass
       }
     }
   }

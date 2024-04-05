@@ -38,7 +38,7 @@ function App() {
           alt="background"
           style={{ zIndex: -1 }}
         />
-        <div className="w-screen h-screen flex justify-center flex-col items-center content-center">
+        <div className=" flex justify-center flex-col items-center content-center">
           {/* filter section */}
           <section className="max-w-screen-lg w-full basis-1">
             {" "}
