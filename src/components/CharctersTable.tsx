@@ -9,7 +9,7 @@ const CharactersTable = () => {
   const [endCursor, setEndCursor] = useState("");
   const [allPeople, setAllPeople] = useState<CharacterProperties[]>([]);
   const [allDataLoaded, setAllDataLoaded] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [isloadingMore, setIsLoadingMore] = useState(false);
   // Passed to TableFilter to get filtered IDs
   const [filteredIDs, setFilteredIDs] = useState<string[]>([]);
   const [isFilterEnabled, setIsFilterEnabled] = useState(false);
@@ -32,79 +32,14 @@ const CharactersTable = () => {
       // if filteredIDs length less than pagesize, then fetch more data
 
       setAllPeople(filteredData);
+      setIsFilterEnabled(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFilterEnabled]);
 
-  // useEffect(() => {
-  //   const loadFilteredData = async () => {
-  //     let currentData = [...allPeople];
-  //     let currentEndCursor = endCursor;
-
-  //     while (
-  //       currentData.length < pagesize &&
-  //       data?.allPeople.pageInfo.hasNextPage
-  //     ) {
-  //       const fetchMoreResult = await fetchMore({
-  //         variables: { after: currentEndCursor },
-  //         updateQuery: (prevResult, { fetchMoreResult }) => {
-  //           if (!fetchMoreResult) return prevResult;
-  //           return {
-  //             allPeople: {
-  //               __typename: prevResult.allPeople.__typename,
-  //               edges: [
-  //                 ...prevResult.allPeople.edges,
-  //                 ...fetchMoreResult.allPeople.edges,
-  //               ],
-  //               pageInfo: fetchMoreResult.allPeople.pageInfo,
-  //             },
-  //           };
-  //         },
-  //       });
-
-  //       currentEndCursor = fetchMoreResult.data.allPeople.pageInfo.endCursor;
-  //       currentData = currentData.concat(
-  //         fetchMoreResult.data.allPeople.edges.map(
-  //           (edge: {
-  //             node: {
-  //               id: any;
-  //               name: any;
-  //               height: any;
-  //               mass: any;
-  //               homeworld: { name: any };
-  //               species: { name: any };
-  //               gender: any;
-  //               eyeColor: any;
-  //             };
-  //           }) => ({
-  //             key: edge.node.id,
-  //             name: edge.node.name,
-  //             height: edge.node.height,
-  //             weight: edge.node.mass,
-  //             homePlanet: edge.node.homeworld ? edge.node.homeworld.name : "-",
-  //             species: edge.node.species ? edge.node.species.name : "-",
-  //             gender: edge.node.gender,
-  //             eyeColor: edge.node.eyeColor,
-  //           })
-  //         )
-  //       );
-  //       currentData = currentData.filter((person) =>
-  //         filteredIDs.includes(person.key)
-  //       );
-  //     }
-
-  //     setAllPeople(currentData);
-  //   };
-
-  //   if (isFilterEnabled) {
-  //     loadFilteredData();
-  //   }
-  // }, [isFilterEnabled, filteredIDs, data]);
-
   useEffect(() => {
     if (data?.allPeople?.edges) {
-      setAllPeople((prev) => [
-        ...prev,
+      setAllPeople(() => [
         ...data.allPeople.edges.map(
           (edge: {
             node: {
@@ -129,6 +64,7 @@ const CharactersTable = () => {
           })
         ),
       ]);
+
       if (!data.allPeople.pageInfo.hasNextPage) {
         setAllDataLoaded(true);
       }
@@ -171,6 +107,9 @@ const CharactersTable = () => {
   // }, [loaderRef, loading, data, loadingMore]);
 
   function handleLoadMore() {
+    setIsLoadingMore(true);
+    console.log("endCursor", data.allPeople.pageInfo.endCursor);
+    console.log("loading more data");
     if (!data.allPeople.pageInfo.hasNextPage) return;
     fetchMore({
       variables: {
@@ -190,6 +129,9 @@ const CharactersTable = () => {
         };
       },
     }).then((res) => {
+      console.log(res);
+      console.log("loading more success");
+      setIsLoadingMore(false);
       // if filter is enabled, then filter the data
       if (isFilterEnabled) {
         const filteredData = allPeople.filter((person) =>
@@ -235,7 +177,7 @@ const CharactersTable = () => {
           // Loading More Button
           <Button
             type="primary"
-            loading={loadingMore}
+            loading={isloadingMore}
             onClick={handleLoadMore}
             ghost
           >
