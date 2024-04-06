@@ -10,6 +10,9 @@ const CharactersTable = () => {
   const [allPeople, setAllPeople] = useState<CharacterProperties[]>([]);
   const [allDataLoaded, setAllDataLoaded] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Passed to TableFilter to get filtered IDs
+  const [filteredIDs, setFilteredIDs] = useState<string[]>([]);
+  const [isFilterEnabled, setIsFilterEnabled] = useState(false);
   const loaderRef = useRef(null);
 
   const pagesize = 20;
@@ -17,6 +20,86 @@ const CharactersTable = () => {
     variables: { first: pagesize, after: endCursor },
     notifyOnNetworkStatusChange: true,
   });
+
+  useEffect(() => {
+    // monitor filteredIDs
+    console.log(filteredIDs);
+    if (isFilterEnabled) {
+      // get the person info
+      const filteredData = allPeople.filter((person) =>
+        filteredIDs.includes(person.key)
+      );
+      // if filteredIDs length less than pagesize, then fetch more data
+
+      setAllPeople(filteredData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFilterEnabled]);
+
+  // useEffect(() => {
+  //   const loadFilteredData = async () => {
+  //     let currentData = [...allPeople];
+  //     let currentEndCursor = endCursor;
+
+  //     while (
+  //       currentData.length < pagesize &&
+  //       data?.allPeople.pageInfo.hasNextPage
+  //     ) {
+  //       const fetchMoreResult = await fetchMore({
+  //         variables: { after: currentEndCursor },
+  //         updateQuery: (prevResult, { fetchMoreResult }) => {
+  //           if (!fetchMoreResult) return prevResult;
+  //           return {
+  //             allPeople: {
+  //               __typename: prevResult.allPeople.__typename,
+  //               edges: [
+  //                 ...prevResult.allPeople.edges,
+  //                 ...fetchMoreResult.allPeople.edges,
+  //               ],
+  //               pageInfo: fetchMoreResult.allPeople.pageInfo,
+  //             },
+  //           };
+  //         },
+  //       });
+
+  //       currentEndCursor = fetchMoreResult.data.allPeople.pageInfo.endCursor;
+  //       currentData = currentData.concat(
+  //         fetchMoreResult.data.allPeople.edges.map(
+  //           (edge: {
+  //             node: {
+  //               id: any;
+  //               name: any;
+  //               height: any;
+  //               mass: any;
+  //               homeworld: { name: any };
+  //               species: { name: any };
+  //               gender: any;
+  //               eyeColor: any;
+  //             };
+  //           }) => ({
+  //             key: edge.node.id,
+  //             name: edge.node.name,
+  //             height: edge.node.height,
+  //             weight: edge.node.mass,
+  //             homePlanet: edge.node.homeworld ? edge.node.homeworld.name : "-",
+  //             species: edge.node.species ? edge.node.species.name : "-",
+  //             gender: edge.node.gender,
+  //             eyeColor: edge.node.eyeColor,
+  //           })
+  //         )
+  //       );
+  //       currentData = currentData.filter((person) =>
+  //         filteredIDs.includes(person.key)
+  //       );
+  //     }
+
+  //     setAllPeople(currentData);
+  //   };
+
+  //   if (isFilterEnabled) {
+  //     loadFilteredData();
+  //   }
+  // }, [isFilterEnabled, filteredIDs, data]);
 
   useEffect(() => {
     if (data?.allPeople?.edges) {
@@ -106,6 +189,14 @@ const CharactersTable = () => {
           },
         };
       },
+    }).then((res) => {
+      // if filter is enabled, then filter the data
+      if (isFilterEnabled) {
+        const filteredData = allPeople.filter((person) =>
+          filteredIDs.includes(person.key)
+        );
+        setAllPeople(filteredData);
+      }
     });
   }
 
@@ -124,7 +215,11 @@ const CharactersTable = () => {
 
   return (
     <>
-      <TableFilter />
+      <TableFilter
+        filteredIDs={filteredIDs}
+        setFilteredIDs={setFilteredIDs}
+        setIsFilterEnabled={setIsFilterEnabled}
+      />
       <Table
         dataSource={allPeople}
         columns={properties_col}

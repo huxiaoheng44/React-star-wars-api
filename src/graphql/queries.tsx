@@ -32,6 +32,7 @@ export const GET_FILTER_DATA = gql`
   query Query {
     allPeople {
       people {
+        id
         eyeColor
         gender
         species {

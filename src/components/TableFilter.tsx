@@ -5,6 +5,7 @@ import FilterTags from "./FilterTags";
 import { Button } from "antd";
 
 interface Person {
+  id: string;
   gender: string | null;
   eyeColor: string | null;
   species: { name: string } | null;
@@ -17,7 +18,17 @@ interface QueryResult {
   };
 }
 
-const TableFilter = () => {
+interface FilterTagsProps {
+  filteredIDs: string[];
+  setFilteredIDs: React.Dispatch<React.SetStateAction<string[]>>;
+  setIsFilterEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const TableFilter: React.FC<FilterTagsProps> = ({
+  filteredIDs,
+  setFilteredIDs,
+  setIsFilterEnabled,
+}) => {
   const { data, loading, error } = useQuery<QueryResult>(GET_FILTER_DATA);
   //const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [genderTags, setGenderTags] = useState<string[]>([]);
@@ -71,6 +82,44 @@ const TableFilter = () => {
       .filter(Boolean)
   );
 
+  const handleFilter = () => {
+    console.log(genderTags, eyeColorTags, speciesTags, filmsTags);
+    // clear previous filtered IDs
+    setFilteredIDs([]);
+    const filteredPeopleIds: string[] = [];
+    // filter person id based on selected tags
+    data.allPeople.people.filter((person) => {
+      if (eyeColorTags.includes(person.eyeColor as string)) {
+        filteredPeopleIds.push(person.id);
+      }
+      if (genderTags.includes(person.gender as string)) {
+        filteredPeopleIds.push(person.id);
+      }
+      if (speciesTags.includes(person.species?.name as string)) {
+        filteredPeopleIds.push(person.id);
+      }
+      if (
+        filmsTags.some((film) =>
+          person.filmConnection?.films.some((f) => f.title === film)
+        )
+      ) {
+        filteredPeopleIds.push(person.id);
+      }
+
+      setFilteredIDs(filteredPeopleIds);
+      setIsFilterEnabled(true);
+    });
+  };
+
+  const handleFilterReset = () => {
+    setGenderTags([]);
+    setEyeColorTags([]);
+    setSpeciesTags([]);
+    setFilmsTags([]);
+    setFilteredIDs([]);
+    setIsFilterEnabled(false);
+  };
+
   return (
     <div className="filter bg-white rounded-lg my-5 p-5 pb-2">
       <FilterTags
@@ -104,10 +153,10 @@ const TableFilter = () => {
       {/* enable search and reset search button */}
 
       <div className="flex justify-center space-x-10">
-        <Button type="primary" className="my-2">
-          Search
+        <Button type="primary" className="my-2" onClick={handleFilter}>
+          Apply Filter
         </Button>
-        <Button type="default" className="my-2">
+        <Button type="default" className="my-2" onClick={handleFilterReset}>
           Reset
         </Button>
       </div>
