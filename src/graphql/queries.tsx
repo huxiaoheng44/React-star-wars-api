@@ -5,6 +5,7 @@ export const GET_ALL_PEOPLE = gql`
     allPeople(first: $first, after: $after) {
       edges {
         node {
+          id
           height
           eyeColor
           gender

@@ -5,27 +5,39 @@ interface FilterTagsProps {
   title: string;
   tags: Set<string>;
   selectedTags: string[];
-  onChange: (tag: string, checked: boolean) => void;
+  setTags: React.Dispatch<React.SetStateAction<string[]>>;
+  onChange: (
+    tag: string,
+    checked: boolean,
+    tagsSet: string[],
+    setTagsSet: React.Dispatch<React.SetStateAction<string[]>>
+  ) => void;
 }
 
 const FilterTags: React.FC<FilterTagsProps> = ({
   title,
   tags,
   selectedTags,
+  setTags,
   onChange,
 }) => {
   return (
-    <div className="mb-4">
-      <div>{title}:</div>
-      {Array.from(tags).map((tag) => (
-        <Tag.CheckableTag
-          key={tag}
-          checked={selectedTags.includes(tag)}
-          onChange={(checked) => onChange(tag, checked)}
-        >
-          {tag}
-        </Tag.CheckableTag>
-      ))}
+    <div className="mb-4 flex flex-row">
+      <div className="w-28">{title}: </div>
+      <div className="flex-grow-0">
+        {Array.from(tags).map((tag) => (
+          <Tag.CheckableTag
+            className="border-1 border-gray-300"
+            key={tag}
+            checked={selectedTags.includes(tag)}
+            onChange={(checked) =>
+              onChange(tag, checked, selectedTags, setTags)
+            }
+          >
+            {tag}
+          </Tag.CheckableTag>
+        ))}
+      </div>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_FILTER_DATA } from "../graphql/queries";
 import FilterTags from "./FilterTags";
+import { Button } from "antd";
 
 interface Person {
   gender: string | null;
@@ -18,13 +19,22 @@ interface QueryResult {
 
 const TableFilter = () => {
   const { data, loading, error } = useQuery<QueryResult>(GET_FILTER_DATA);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  //const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [genderTags, setGenderTags] = useState<string[]>([]);
+  const [eyeColorTags, setEyeColorTags] = useState<string[]>([]);
+  const [speciesTags, setSpeciesTags] = useState<string[]>([]);
+  const [filmsTags, setFilmsTags] = useState<string[]>([]);
 
-  const handleChange = (tag: string, checked: boolean) => {
+  const handleChange = (
+    tag: string,
+    checked: boolean,
+    tagsSet: string[],
+    setTagsSet: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
     const nextSelectedTags = checked
-      ? [...selectedTags, tag]
-      : selectedTags.filter((t) => t !== tag);
-    setSelectedTags(nextSelectedTags);
+      ? [...tagsSet, tag]
+      : tagsSet.filter((t) => t !== tag);
+    setTagsSet(nextSelectedTags);
   };
 
   if (loading) return <p>Loading...</p>;
@@ -62,31 +72,45 @@ const TableFilter = () => {
   );
 
   return (
-    <div className="bg-white rounded-lg my-4 p-2">
+    <div className="filter bg-white rounded-lg my-5 p-5 pb-2">
       <FilterTags
         title="Gender"
         tags={genders}
-        selectedTags={selectedTags}
+        selectedTags={genderTags}
+        setTags={setGenderTags}
         onChange={handleChange}
       />
       <FilterTags
         title="Eye Colors"
         tags={eyeColors}
-        selectedTags={selectedTags}
+        selectedTags={eyeColorTags}
+        setTags={setEyeColorTags}
         onChange={handleChange}
       />
       <FilterTags
         title="Species"
         tags={speciesNames}
-        selectedTags={selectedTags}
+        selectedTags={speciesTags}
+        setTags={setSpeciesTags}
         onChange={handleChange}
       />
       <FilterTags
         title="Films"
         tags={filmsTitles}
-        selectedTags={selectedTags}
+        selectedTags={filmsTags}
+        setTags={setFilmsTags}
         onChange={handleChange}
       />
+      {/* enable search and reset search button */}
+
+      <div className="flex justify-center space-x-10">
+        <Button type="primary" className="my-2">
+          Search
+        </Button>
+        <Button type="default" className="my-2">
+          Reset
+        </Button>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,5 @@
-export interface CharacterProperties {
+export type CharacterProperties = {
+  key: string;
   name: string;
   height: string;
   weight: string;
@@ -6,4 +7,4 @@ export interface CharacterProperties {
   species: string;
   gender: string;
   eyeColor: string;
-}
+};
