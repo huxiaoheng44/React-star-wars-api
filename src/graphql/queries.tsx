@@ -47,3 +47,15 @@ export const GET_FILTER_DATA = gql`
     }
   }
 `;
+
+export const GET_FILMS = gql`
+  query Query($personId: ID) {
+    person(id: $personId) {
+      filmConnection {
+        films {
+          title
+        }
+      }
+    }
+  }
+`;

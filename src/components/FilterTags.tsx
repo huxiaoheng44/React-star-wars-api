@@ -23,11 +23,11 @@ const FilterTags: React.FC<FilterTagsProps> = ({
 }) => {
   return (
     <div className="mb-4 flex flex-row">
-      <div className="w-28">{title}: </div>
-      <div className="flex-grow-0">
+      <div className="min-w-24">{title}: </div>
+      <div className="flex-grow ">
         {Array.from(tags).map((tag) => (
           <Tag.CheckableTag
-            className="border-1 border-gray-300"
+            className="border-1 border-gray-300 my-1"
             key={tag}
             checked={selectedTags.includes(tag)}
             onChange={(checked) =>

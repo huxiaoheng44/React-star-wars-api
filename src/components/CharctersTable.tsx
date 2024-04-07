@@ -1,23 +1,37 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Table, Spin, Alert, Button } from "antd";
+import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { useQuery } from "@apollo/client";
 import { GET_ALL_PEOPLE } from "../graphql/queries";
 import { CharacterProperties } from "../models/models";
+import CharacterPreview from "./CharacterPreview";
 import TableFilter from "./TableFilter";
 
 const CharactersTable = () => {
-  const [endCursor, setEndCursor] = useState("");
+  // Initial table
   const [allPeople, setAllPeople] = useState<CharacterProperties[]>([]);
   const [allDataLoaded, setAllDataLoaded] = useState(false);
   const [isloadingMore, setIsLoadingMore] = useState(false);
+
   // Passed to TableFilter to get filtered IDs
   const [filteredIDs, setFilteredIDs] = useState<string[]>([]);
+  // If filter is enabled, then filter the data
+  const [filteredPeople, setFilteredPeople] = useState<CharacterProperties[]>(
+    []
+  );
   const [isFilterEnabled, setIsFilterEnabled] = useState(false);
   const loaderRef = useRef(null);
 
+  // Character preview
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [
+    selectedCharacter,
+    setSelectedCharacter,
+  ] = useState<CharacterProperties | null>(null);
+
   const pagesize = 20;
   const { loading, error, data, fetchMore } = useQuery(GET_ALL_PEOPLE, {
-    variables: { first: pagesize, after: endCursor },
+    variables: { first: pagesize, after: null },
     notifyOnNetworkStatusChange: true,
   });
 
@@ -30,12 +44,10 @@ const CharactersTable = () => {
         filteredIDs.includes(person.key)
       );
       // if filteredIDs length less than pagesize, then fetch more data
-
-      setAllPeople(filteredData);
-      setIsFilterEnabled(false);
+      setFilteredPeople(filteredData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFilterEnabled]);
+  }, [isFilterEnabled, filteredIDs, allPeople]);
 
   useEffect(() => {
     if (data?.allPeople?.edges) {
@@ -142,6 +154,12 @@ const CharactersTable = () => {
     });
   }
 
+  const handleDetailsClick = (character: CharacterProperties) => {
+    console.log("Details Clicked", character);
+    setSelectedCharacter(character);
+    setPreviewVisible(true);
+  };
+
   const properties_col = [
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Height", dataIndex: "height", key: "height" },
@@ -150,6 +168,17 @@ const CharactersTable = () => {
     { title: "Species", dataIndex: "species", key: "species" },
     { title: "Gender", dataIndex: "gender", key: "gender" },
     { title: "Eye Color", dataIndex: "eyeColor", key: "eyeColor" },
+    // Add as favourite button and a preview button
+    {
+      title: "Action",
+      key: "action",
+      render: (record: CharacterProperties) => (
+        <div>
+          <HeartOutlined />{" "}
+          <Button onClick={() => handleDetailsClick(record)}>Details</Button>
+        </div>
+      ),
+    },
   ];
 
   if (error)
@@ -163,7 +192,7 @@ const CharactersTable = () => {
         setIsFilterEnabled={setIsFilterEnabled}
       />
       <Table
-        dataSource={allPeople}
+        dataSource={isFilterEnabled ? filteredPeople : allPeople}
         columns={properties_col}
         pagination={false}
       />
@@ -187,6 +216,12 @@ const CharactersTable = () => {
           <Alert message="All Characters Data Loaded" type="success" showIcon />
         )}
       </div>
+
+      <CharacterPreview
+        character={selectedCharacter}
+        isVisible={previewVisible}
+        onClose={() => setPreviewVisible(false)}
+      />
     </>
   );
 };
