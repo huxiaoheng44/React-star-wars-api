@@ -39,12 +39,6 @@ function App() {
           style={{ zIndex: -1 }}
         />
         <div className=" flex justify-center flex-col items-center content-center">
-          {/* filter section */}
-          <section className="max-w-screen-lg w-full basis-1">
-            {" "}
-            Section 1
-          </section>
-          {/* table section */}
           <section className="max-w-screen-lg w-full">
             <CharactersTable></CharactersTable>
           </section>

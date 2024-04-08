@@ -29,15 +29,41 @@ const CharactersTable = () => {
     setSelectedCharacter,
   ] = useState<CharacterProperties | null>(null);
 
+  // Favorites list
+  const [favorites, setFavorites] = useState<CharacterProperties[]>([]);
+
   const pagesize = 20;
   const { loading, error, data, fetchMore } = useQuery(GET_ALL_PEOPLE, {
     variables: { first: pagesize, after: null },
     notifyOnNetworkStatusChange: true,
   });
 
+  // Load favorites from local storage
+  useEffect(() => {
+    try {
+      const loadedFavorites = localStorage.getItem("favorites");
+      if (loadedFavorites) {
+        const favoritesArray = JSON.parse(loadedFavorites);
+        console.log("Loaded favorites", favoritesArray);
+        setFavorites(favoritesArray);
+      }
+    } catch (e) {
+      console.error("Failed to load favorites:", e);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // This useEffect will be triggered when initialize favorites as empty array, thus causing local storage being reset as empty.
+  // Add favorites to localStorage
+  // useEffect(() => {
+  //   const loadedFavorites = localStorage.getItem("favorites");
+  //   console.log(loadedFavorites);
+  //   localStorage.setItem("favorites", JSON.stringify(favorites));
+  // }, [favorites]);
+
   useEffect(() => {
     // monitor filteredIDs
-    console.log(filteredIDs);
     if (isFilterEnabled) {
       // get the person info
       const filteredData = allPeople.filter((person) =>
@@ -46,7 +72,6 @@ const CharactersTable = () => {
       // if filteredIDs length less than pagesize, then fetch more data
       setFilteredPeople(filteredData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFilterEnabled, filteredIDs, allPeople]);
 
   useEffect(() => {
@@ -174,8 +199,31 @@ const CharactersTable = () => {
       key: "action",
       render: (record: CharacterProperties) => (
         <div>
-          <HeartOutlined />{" "}
           <Button onClick={() => handleDetailsClick(record)}>Details</Button>
+        </div>
+      ),
+    },
+    {
+      title: "Favourite",
+      key: "favourite",
+      render: (record: CharacterProperties) => (
+        <div className="flex justify-center">
+          {favorites.some((fav) => fav.key === record.key) ? (
+            <HeartFilled
+              onClick={() => {
+                setFavorites(favorites.filter((fav) => fav.key !== record.key));
+                localStorage.setItem("favorites", JSON.stringify(favorites));
+              }}
+              style={{ color: "red" }}
+            />
+          ) : (
+            <HeartOutlined
+              onClick={() => {
+                setFavorites([...favorites, record]);
+                localStorage.setItem("favorites", JSON.stringify(favorites));
+              }}
+            />
+          )}
         </div>
       ),
     },

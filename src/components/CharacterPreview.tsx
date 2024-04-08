@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal } from "antd";
+import { Button, Modal } from "antd";
 import { CharacterProperties } from "../models/models";
 import { GET_FILMS } from "../graphql/queries";
 import { useQuery } from "@apollo/client";
@@ -28,12 +28,12 @@ const CharacterPreview: React.FC<CharacterPreviewProps> = ({
       open={isVisible}
       onCancel={onClose}
       footer={[
-        <button
+        <Button
           key="add-to-favorites"
           onClick={() => console.log("Add to Favourites")}
         >
           Add to Favourites
-        </button>,
+        </Button>,
       ]}
       width={600}
     >
