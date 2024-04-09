@@ -1,11 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Table, Spin, Alert, Button } from "antd";
-import {
-  HeartOutlined,
-  HeartFilled,
-  DeleteOutlined,
-  DeleteFilled,
-} from "@ant-design/icons";
+import { HeartOutlined, HeartFilled, DeleteFilled } from "@ant-design/icons";
 import { useQuery } from "@apollo/client";
 import { GET_ALL_PEOPLE } from "../graphql/queries";
 import { CharacterProperties } from "../models/models";
@@ -229,8 +224,8 @@ const CharactersTable: React.FC<CharactersTableProp> = ({ FavoriteMode }) => {
       ),
     },
     {
-      title: "Favourite",
-      key: "favourite",
+      title: "IsFavorite",
+      key: "isFavorite",
       render: (record: CharacterProperties) =>
         !FavoriteMode ? (
           <div className="flex justify-center">
@@ -253,7 +248,11 @@ const CharactersTable: React.FC<CharactersTableProp> = ({ FavoriteMode }) => {
           </div>
         ) : (
           <div className="flex justify-center">
-            <DeleteFilled />
+            <DeleteFilled
+              onClick={() => {
+                setFavorites(favorites.filter((fav) => fav.key !== record.key));
+              }}
+            />
           </div>
         ),
     },
@@ -302,6 +301,8 @@ const CharactersTable: React.FC<CharactersTableProp> = ({ FavoriteMode }) => {
       </div>
 
       <CharacterPreview
+        favorites={favorites}
+        setFavorites={setFavorites}
         character={selectedCharacter}
         isVisible={previewVisible}
         onClose={() => setPreviewVisible(false)}

@@ -230,7 +230,7 @@ const TableFilter: React.FC<FilterTagsProps> = ({
           </Button>
         </div>
         <div className=" flex justify-end items-center">
-          <div className="font-semibold px-2">Filter Tag relation: </div>
+          <div className="font-semibold px-2">Filter Logic: </div>
           {/* <Button
             type="primary"
             className="my-2"

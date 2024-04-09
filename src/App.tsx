@@ -14,7 +14,9 @@ function App() {
     <div className="App">
       <header className="sticky top-0 z-10">
         <div className="text-white font-bold text-2xl bg-slate-700 px-5 flex flex-row">
-          <StarWarsIcon size={50} />
+          <div>
+            <StarWarsIcon size={50} />
+          </div>
           <div className="flex items-center px-5">
             Characters Reference Book
           </div>
