@@ -1,46 +1,42 @@
 import React from "react";
 import CharactersTable from "./components/CharctersTable";
+import StarWarsIcon from "./icons/StarWarsIcon";
+import { HeartFilled, HeartOutlined } from "@ant-design/icons";
 
 function App() {
+  const [FavoriteMode, setFavoriteMode] = React.useState(false);
+  const backgroundStyle = {
+    backgroundImage: `url(${process.env.PUBLIC_URL}/bg.png)`,
+    backgroundAttachment: "fixed",
+    backgroundSize: "cover",
+  };
   return (
     <div className="App">
-      {/* <header >Star Wars Characters</header> */}
-      {/* <Layout>
-        <Header className="text-white font-bold text-3xl">
-          <div className="">Star War Characters Reference Book</div>
-          <Menu
-            theme="dark"
-            mode="horizontal"
-            defaultSelectedKeys={["2"]}
-            style={{ flex: 1, minWidth: 0 }}
-          />
-        </Header>
-        <Content className="w-20 h-20 ">content</Content>
-      </Layout> */}
-
-      {/* {data &&
-        data.allPeople.people.map((person: any) => (
-          <div key={person.name}>
-            <h2>{person.name}</h2>
-            <p>Height: {person.height}</p>
-            <p>Eye Color: {person.eyeColor}</p>
-          </div>
-        ))} */}
       <header className="sticky top-0 z-10">
-        <div className="text-white font-bold text-2xl bg-slate-700 py-3 px-5 ">
-          Star War Characters Reference Book
+        <div className="text-white font-bold text-2xl bg-slate-700 px-5 flex flex-row">
+          <StarWarsIcon size={50} />
+          <div className="flex items-center px-5">
+            Characters Reference Book
+          </div>
+          <div className=" flex flex-grow justify-end">
+            {FavoriteMode ? (
+              <HeartFilled onClick={() => setFavoriteMode(!FavoriteMode)} />
+            ) : (
+              <HeartOutlined onClick={() => setFavoriteMode(!FavoriteMode)} />
+            )}
+          </div>
         </div>
       </header>
-      <div className="relative min-h-screen">
-        <img
+      <div className="relative min-h-screen" style={backgroundStyle}>
+        {/* <img
           className="absolute w-full h-full opacity-20"
           src={process.env.PUBLIC_URL + "/bg.png"}
           alt="background"
           style={{ zIndex: -1 }}
-        />
+        /> */}
         <div className=" flex justify-center flex-col items-center content-center">
           <section className="max-w-screen-lg w-full">
-            <CharactersTable></CharactersTable>
+            <CharactersTable FavoriteMode={FavoriteMode}></CharactersTable>
           </section>
         </div>
       </div>

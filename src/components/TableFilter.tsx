@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_FILTER_DATA } from "../graphql/queries";
 import FilterTags from "./FilterTags";
-import { Button } from "antd";
+import { Button, notification, Switch } from "antd";
+import { FilterFilled, FilterOutlined } from "@ant-design/icons";
 
 interface Person {
   id: string;
@@ -19,13 +20,17 @@ interface QueryResult {
 }
 
 interface FilterTagsProps {
+  FavoriteMode?: boolean;
   filteredIDs: string[];
+  isFilterEnabled: boolean;
   setFilteredIDs: React.Dispatch<React.SetStateAction<string[]>>;
   setIsFilterEnabled: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const TableFilter: React.FC<FilterTagsProps> = ({
+  FavoriteMode,
   filteredIDs,
+  isFilterEnabled,
   setFilteredIDs,
   setIsFilterEnabled,
 }) => {
@@ -35,6 +40,18 @@ const TableFilter: React.FC<FilterTagsProps> = ({
   const [eyeColorTags, setEyeColorTags] = useState<string[]>([]);
   const [speciesTags, setSpeciesTags] = useState<string[]>([]);
   const [filmsTags, setFilmsTags] = useState<string[]>([]);
+  // relation between different tags
+  const [isOrRelation, setIsOrRelation] = useState(true);
+  // notification
+  const [api, contextHolder] = notification.useNotification();
+
+  const openNotification = (message: string, description: string) => {
+    api.info({
+      message: message,
+      description: description,
+      placement: "top",
+    });
+  };
 
   const handleChange = (
     tag: string,
@@ -83,32 +100,71 @@ const TableFilter: React.FC<FilterTagsProps> = ({
   );
 
   const handleFilter = () => {
-    console.log(genderTags, eyeColorTags, speciesTags, filmsTags);
+    // console.log(genderTags, eyeColorTags, speciesTags, filmsTags);
     // clear previous filtered IDs
     setFilteredIDs([]);
     const filteredPeopleIds: string[] = [];
     // filter person id based on selected tags
-    data.allPeople.people.filter((person) => {
-      if (eyeColorTags.includes(person.eyeColor as string)) {
-        filteredPeopleIds.push(person.id);
+    if (isOrRelation) {
+      for (const person of data.allPeople.people) {
+        if (eyeColorTags.includes(person.eyeColor as string)) {
+          filteredPeopleIds.push(person.id);
+        }
+        if (genderTags.includes(person.gender as string)) {
+          filteredPeopleIds.push(person.id);
+        }
+        if (speciesTags.includes(person.species?.name as string)) {
+          filteredPeopleIds.push(person.id);
+        }
+        if (
+          filmsTags.some((film) =>
+            person.filmConnection?.films.some((f) => f.title === film)
+          )
+        ) {
+          filteredPeopleIds.push(person.id);
+        }
       }
-      if (genderTags.includes(person.gender as string)) {
-        filteredPeopleIds.push(person.id);
-      }
-      if (speciesTags.includes(person.species?.name as string)) {
-        filteredPeopleIds.push(person.id);
-      }
-      if (
-        filmsTags.some((film) =>
-          person.filmConnection?.films.some((f) => f.title === film)
-        )
-      ) {
-        filteredPeopleIds.push(person.id);
-      }
+    } else {
+      // if (
+      //   eyeColorTags.length === 0 ||
+      //   genderTags.length === 0 ||
+      //   speciesTags.length === 0 ||
+      //   filmsTags.length === 0
+      // ) {
+      //   openNotification(
+      //     "Notification",
+      //     "Please select at least one tag from each category"
+      //   );
+      //   return;
+      // }
+      for (const person of data.allPeople.people) {
+        const matchesEyeColor =
+          eyeColorTags.length === 0 ||
+          eyeColorTags.includes(person.eyeColor as string);
+        const matchesGender =
+          genderTags.length === 0 ||
+          genderTags.includes(person.gender as string);
+        const matchesSpecies =
+          speciesTags.length === 0 ||
+          speciesTags.includes(person.species?.name as string);
+        const matchesFilms =
+          filmsTags.length === 0 ||
+          filmsTags.every((film) =>
+            person.filmConnection?.films.some((f) => f.title === film)
+          );
 
-      setFilteredIDs(filteredPeopleIds);
-      setIsFilterEnabled(true);
-    });
+        if (
+          matchesEyeColor &&
+          matchesGender &&
+          matchesSpecies &&
+          matchesFilms
+        ) {
+          filteredPeopleIds.push(person.id);
+        }
+      }
+    }
+    setFilteredIDs(filteredPeopleIds);
+    setIsFilterEnabled(true);
   };
 
   const handleFilterReset = () => {
@@ -122,6 +178,7 @@ const TableFilter: React.FC<FilterTagsProps> = ({
 
   return (
     <div className="filter bg-white rounded-lg my-5 p-5 pb-2">
+      {contextHolder}
       <FilterTags
         title="Gender"
         tags={genders}
@@ -153,12 +210,45 @@ const TableFilter: React.FC<FilterTagsProps> = ({
       {/* enable search and reset search button */}
 
       <div className="flex justify-center space-x-10">
-        <Button type="primary" className="my-2" onClick={handleFilter}>
-          Apply Filter
-        </Button>
-        <Button type="default" className="my-2" onClick={handleFilterReset}>
-          Reset
-        </Button>
+        <div className="flex justify-center space-x-10 flex-grow pl-60">
+          <Button
+            type="primary"
+            className="my-2"
+            onClick={handleFilter}
+            icon={isFilterEnabled ? <FilterFilled /> : <FilterOutlined />}
+          >
+            Apply Filter
+          </Button>
+
+          <Button
+            type="primary"
+            className="my-2"
+            onClick={handleFilterReset}
+            style={{ backgroundColor: "DimGray " }}
+          >
+            Reset
+          </Button>
+        </div>
+        <div className=" flex justify-end items-center">
+          <div className="font-semibold px-2">Filter Tag relation: </div>
+          {/* <Button
+            type="primary"
+            className="my-2"
+            onClick={() => {
+              setIsOrRelation(!isOrRelation);
+            }}
+          >
+            {isOrRelation ? "OR" : "AND"}
+          </Button> */}
+          {/* replace button with switch */}
+          <Switch
+            checkedChildren="AND"
+            unCheckedChildren="OR"
+            checked={!isOrRelation}
+            onChange={() => setIsOrRelation(!isOrRelation)}
+            className={isOrRelation ? "switch-or" : "switch-and"}
+          />
+        </div>
       </div>
     </div>
   );

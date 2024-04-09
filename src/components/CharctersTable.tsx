@@ -1,13 +1,22 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Table, Spin, Alert, Button } from "antd";
-import { HeartOutlined, HeartFilled } from "@ant-design/icons";
+import {
+  HeartOutlined,
+  HeartFilled,
+  DeleteOutlined,
+  DeleteFilled,
+} from "@ant-design/icons";
 import { useQuery } from "@apollo/client";
 import { GET_ALL_PEOPLE } from "../graphql/queries";
 import { CharacterProperties } from "../models/models";
 import CharacterPreview from "./CharacterPreview";
 import TableFilter from "./TableFilter";
 
-const CharactersTable = () => {
+interface CharactersTableProp {
+  FavoriteMode?: boolean;
+}
+
+const CharactersTable: React.FC<CharactersTableProp> = ({ FavoriteMode }) => {
   // Initial table
   const [allPeople, setAllPeople] = useState<CharacterProperties[]>([]);
   const [allDataLoaded, setAllDataLoaded] = useState(false);
@@ -31,34 +40,43 @@ const CharactersTable = () => {
 
   // Favorites list
   const [favorites, setFavorites] = useState<CharacterProperties[]>([]);
+  const [isFavoritesInitialized, setIsFavoritesInitialized] = useState(false);
 
   const pagesize = 20;
-  const { loading, error, data, fetchMore } = useQuery(GET_ALL_PEOPLE, {
+  const { error, data, fetchMore } = useQuery(GET_ALL_PEOPLE, {
     variables: { first: pagesize, after: null },
     notifyOnNetworkStatusChange: true,
+    skip: FavoriteMode,
   });
 
   // Load favorites from local storage
   useEffect(() => {
-    try {
-      const loadedFavorites = localStorage.getItem("favorites");
-      if (loadedFavorites) {
-        const favoritesArray = JSON.parse(loadedFavorites);
-        console.log("Loaded favorites", favoritesArray);
-        setFavorites(favoritesArray);
-      }
-    } catch (e) {
-      console.error("Failed to load favorites:", e);
+    const loadedFavorites = localStorage.getItem("favorites");
+    if (loadedFavorites) {
+      const favoritesArray = JSON.parse(loadedFavorites);
+      //console.log("Loaded favorites", favoritesArray);
+      setFavorites(favoritesArray);
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const loadedFavorites = localStorage.getItem("favorites");
+    if (loadedFavorites) {
+      setFavorites(JSON.parse(loadedFavorites));
+    }
+    setIsFavoritesInitialized(true); // make sure that favorites are loaded
+  }, []);
+
+  useEffect(() => {
+    if (isFavoritesInitialized) {
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+    }
+  }, [favorites, isFavoritesInitialized]);
 
   // This useEffect will be triggered when initialize favorites as empty array, thus causing local storage being reset as empty.
   // Add favorites to localStorage
   // useEffect(() => {
-  //   const loadedFavorites = localStorage.getItem("favorites");
-  //   console.log(loadedFavorites);
+  //   //console.log(loadedFavorites);
   //   localStorage.setItem("favorites", JSON.stringify(favorites));
   // }, [favorites]);
 
@@ -73,6 +91,13 @@ const CharactersTable = () => {
       setFilteredPeople(filteredData);
     }
   }, [isFilterEnabled, filteredIDs, allPeople]);
+
+  // if favorite mode is enabled, load data from local storage
+  useEffect(() => {
+    if (FavoriteMode) {
+      setAllPeople(favorites);
+    }
+  }, [FavoriteMode, favorites]);
 
   useEffect(() => {
     if (data?.allPeople?.edges) {
@@ -193,7 +218,7 @@ const CharactersTable = () => {
     { title: "Species", dataIndex: "species", key: "species" },
     { title: "Gender", dataIndex: "gender", key: "gender" },
     { title: "Eye Color", dataIndex: "eyeColor", key: "eyeColor" },
-    // Add as favourite button and a preview button
+    // Add as favorite button and a preview button
     {
       title: "Action",
       key: "action",
@@ -206,26 +231,31 @@ const CharactersTable = () => {
     {
       title: "Favourite",
       key: "favourite",
-      render: (record: CharacterProperties) => (
-        <div className="flex justify-center">
-          {favorites.some((fav) => fav.key === record.key) ? (
-            <HeartFilled
-              onClick={() => {
-                setFavorites(favorites.filter((fav) => fav.key !== record.key));
-                localStorage.setItem("favorites", JSON.stringify(favorites));
-              }}
-              style={{ color: "red" }}
-            />
-          ) : (
-            <HeartOutlined
-              onClick={() => {
-                setFavorites([...favorites, record]);
-                localStorage.setItem("favorites", JSON.stringify(favorites));
-              }}
-            />
-          )}
-        </div>
-      ),
+      render: (record: CharacterProperties) =>
+        !FavoriteMode ? (
+          <div className="flex justify-center">
+            {favorites.some((fav) => fav.key === record.key) ? (
+              <HeartFilled
+                onClick={() => {
+                  setFavorites(
+                    favorites.filter((fav) => fav.key !== record.key)
+                  );
+                }}
+                style={{ color: "red" }}
+              />
+            ) : (
+              <HeartOutlined
+                onClick={() => {
+                  setFavorites([...favorites, record]);
+                }}
+              />
+            )}
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <DeleteFilled />
+          </div>
+        ),
     },
   ];
 
@@ -238,6 +268,7 @@ const CharactersTable = () => {
         filteredIDs={filteredIDs}
         setFilteredIDs={setFilteredIDs}
         setIsFilterEnabled={setIsFilterEnabled}
+        isFilterEnabled={isFilterEnabled}
       />
       <Table
         dataSource={isFilterEnabled ? filteredPeople : allPeople}
@@ -245,24 +276,29 @@ const CharactersTable = () => {
         pagination={false}
       />
       <div className="my-2 w-full flex justify-center" ref={loaderRef}>
-        {!allDataLoaded ? (
-          // <div>
-          //   Loading More...
-          //   <Spin size="large" />
-          // </div>
+        {!FavoriteMode &&
+          (!allDataLoaded ? (
+            // <div>
+            //   Loading More...
+            //   <Spin size="large" />
+            // </div>
 
-          // Loading More Button
-          <Button
-            type="primary"
-            loading={isloadingMore}
-            onClick={handleLoadMore}
-            ghost
-          >
-            Load More
-          </Button>
-        ) : (
-          <Alert message="All Characters Data Loaded" type="success" showIcon />
-        )}
+            // Loading More Button
+            <Button
+              type="default"
+              loading={isloadingMore}
+              onClick={handleLoadMore}
+              ghost
+            >
+              Load More
+            </Button>
+          ) : (
+            <Alert
+              message="All Characters Data Loaded"
+              type="success"
+              showIcon
+            />
+          ))}
       </div>
 
       <CharacterPreview

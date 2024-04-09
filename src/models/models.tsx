@@ -8,3 +8,11 @@ export type CharacterProperties = {
   gender: string;
   eyeColor: string;
 };
+
+export interface FilterCategory {
+  id: string;
+  gender: string | null;
+  eyeColor: string | null;
+  species: { name: string } | null;
+  filmConnection: { films: { title: string }[] } | null;
+}

@@ -15,3 +15,13 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+.switch-or{
+  background-color: lightgreen !important;
+}
+
+
+.switch-and{
+  background-color: lightskyblue !important;
+}
