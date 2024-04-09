@@ -41,7 +41,7 @@ const TableFilter: React.FC<FilterTagsProps> = ({
   const [speciesTags, setSpeciesTags] = useState<string[]>([]);
   const [filmsTags, setFilmsTags] = useState<string[]>([]);
   // relation between different tags
-  const [isOrRelation, setIsOrRelation] = useState(true);
+  const [isOrRelation, setIsOrRelation] = useState(false);
   // notification
   const [api, contextHolder] = notification.useNotification();
 
